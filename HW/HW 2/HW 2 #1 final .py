@@ -11,7 +11,7 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-#from mpl_toolkits.basemap import Basemap
+from mpl_toolkits.basemap import Basemap
 
 
 
@@ -42,7 +42,8 @@ dPar  =  {  'showRate'  : True,
 
 # load seismicity and well data using loadtxt
 mSeis  = np.loadtxt( file_eq, comments = '#').T
-#TODO: convert date-time to decimal year use seis_utils.dateTime2decYr
+                    
+#convert date-time to decimal year
 YR = mSeis[1, :]
 MO = mSeis[2, :]
 DY = mSeis[3, :]
@@ -101,15 +102,15 @@ if dPar['showRate'] == True:
 #                       map view of well and event locations
 #------------------------------------------------------------------------
 # create time vector with dt_map spacing
-# SLIDING TIME WINDOW I THTINK???
+
 at_bin  = np.arange( dPar['tmin'], 2018, dPar['dt_map'])
 for i in range( at_bin.shape[0]-1):
     t1, t2 = at_bin[i], at_bin[i+1]
    
     
-    #TODO: select earthquakes between t1 and t2 use np.logical_and
+    # select earthquakes between t1 and t2 use np.logical_and
     sel_eq = np.logical_and( mSeis[0]  >= t1, mSeis[0]   < t2)
-    #TODO: select wells with start dates before t1
+    # select wells with start dates before t1
     sel_we = np.logical_and( mWells[1] <= t1, mWells[1]  <= t1)
     print t1, t2, 'No. earthquakes', sel_eq.sum(), 'No. of wells', sel_we.sum()
    
@@ -120,10 +121,27 @@ for i in range( at_bin.shape[0]-1):
     lon_0, lat_0 = .5*( dPar['xmin']+dPar['xmax']), .5*( dPar['ymin']+dPar['ymax'])
     m = Basemap(llcrnrlon = dPar['xmin'], urcrnrlon=dPar['xmax'],
                 llcrnrlat = dPar['ymin'], urcrnrlat=dPar['ymax'],
-                lon_0 = lon_0, lat_0 = lat_0
-                #resolution = 'l',
-                #projection=dPar['projection'], )
+                lon_0 = lon_0, lat_0 = lat_0,
+                resolution = 'l',
+                projection=dPar['projection'], )
+   
     #TODO: draw state boundaries
-    ???
-
+    m.drawcoastlines()
     
+    
+    #TODO: convert spherical to 2D coordinate system using basemap
+
+    # TODO: plot seismicity and well locations
+    aX_eq, aY_eq = m(  mSeis[1][sel_eq], mSeis[2][sel_eq]
+    
+    
+    # x and y labels
+    m.drawparallels( np.arange( 33,   38,  1), fmt='%i',labels=[1,0,0,0])
+    m.drawmeridians( np.arange(-100,  -92, 2), fmt='%i',labels=[0,0,0,1])
+    #--------------
+
+    file_out = 'OK_seis_t_%.1f_%.1f.png'%( t1, t2)
+    plt.savefig(  file_out, dpi = 150)
+    plt.clf()
+
+    plt.pause( .5)
